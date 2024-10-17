@@ -1,0 +1,1125 @@
+===============================================================================================
+Institute....: Universidad Técnica Nacional
+Campus.......: Pacífico
+Career.......: Tecnologías de Información
+Course.......: ITI-623 - Desarrollo de Aplicaciones Móviles I
+Period.......: 3-2024
+Document.....: 10_SQLite.txt
+Goals........: Store data using a single database engine as localDB in Web Browsers
+References...: 
+Professor....: Jorge Ruiz (york)
+Student......:
+===============================================================================================
+
+Step 01 - Open Android Studio (Giraffe version)
+
+
+Step 02 - Create new project Empty Views Activity
+
+	Name...........: 10_SQLite
+	Package name...: com.demoyork.a10_sqlite
+	Save location..: D:\Documentos\Laboratorios\Android\2_2023\10_SQLite
+	Language.......: Kotlin
+	Minimum SDK....: API 30 ("R", Android 11.0)
+	Build Config...: Kotlin DSL (build.gradle.kts)[Recommended]
+	
+
+Step 03 - Create Database Adapter
+
+	- Right click on app/java/<dominio>.<aplicacion>
+	
+		- Select New - Kotlin Class/File
+
+			- Name...: DBAdapter.kt
+			
+			
+		- Deletes the class code (maintain the application references package) and write:
+		
+			import android.content.ContentValues
+			import android.content.Context
+			import android.database.Cursor
+			import android.database.SQLException
+			import android.database.sqlite.SQLiteDatabase
+			import android.database.sqlite.SQLiteOpenHelper
+			import android.util.Log
+
+			class DBAdapter(val context: Context) {
+				// Creates datastore
+				var dbHelper: DatabaseHelper
+				var db: SQLiteDatabase? = null
+
+				// Opens datastore
+				@Throws(SQLException::class)
+				fun open(): DBAdapter {
+					db = dbHelper.writableDatabase
+					return this
+				}
+
+				// Close the datastore
+				fun close() {
+					dbHelper.close()
+				}
+
+				// ------------------------------------------
+				// Commons Conctactos table methods
+				// ------------------------------------------
+				// Insert new contact
+				fun insContact(nom: String?, apes: String?, email: String?, cel: Long): Long {
+					val initialValues = ContentValues()
+					initialValues.put(Nombre, nom)
+					initialValues.put(Apellidos, apes)
+					initialValues.put(eMail, email)
+					initialValues.put(Celular, cel)
+					return db!!.insert(DB_Tabla, null, initialValues)
+				}
+
+				// Update a contact
+				fun updContact(id: Long, nom: String?, apes: String?, email: String?, cel: Long): Boolean {
+					val args = ContentValues()
+					args.put(Nombre, nom)
+					args.put(Apellidos, apes)
+					args.put(eMail, email)
+					args.put(Celular, cel)
+					return db!!.update(
+						DB_Tabla,
+						args,
+						"$Iden=$id",
+						null
+					) > 0
+				}
+
+				// Delete a contact
+				fun delContact(id: Long): Boolean {
+					return db!!.delete(
+						DB_Tabla,
+						"$Iden=$id",
+						null
+					) > 0
+				}
+
+				// Retrieves all contacts
+				val getAllcontacts: Cursor
+					get() = db!!.query(
+						DB_Tabla,
+						arrayOf(
+							Iden,
+							Nombre,
+							Apellidos,
+							eMail,
+							Celular
+						),
+						null,
+						null,
+						null,
+						null,
+						null,
+						null
+					)
+
+				// Retrieves a specific contact by yours id
+				fun getContact_by_Id(id: Int): Cursor? {
+					val mCursor = db!!.query(
+						true,
+						DB_Tabla,
+						arrayOf(
+							Iden,
+							Nombre,
+							Apellidos,
+							eMail,
+							Celular
+						),
+						"$Iden=$id",
+						null,
+						null,
+						null,
+						null,
+						null
+					)
+					mCursor?.moveToFirst()
+					return mCursor
+				}
+
+				// Inner class to create and update the datastore
+				inner class DatabaseHelper(context: Context?) :
+					SQLiteOpenHelper(
+						context,
+						DB_Nombre,
+						null,
+						DB_Version
+					) {
+					override fun onCreate(db: SQLiteDatabase) {
+						try {
+							// Try to create the datastore
+							db.execSQL(creaBase)
+						} catch (e: SQLException) {
+							// Print in logcat the error found
+							Log.e(TAG, e.message?:"")
+						}
+					}
+
+					override fun onUpgrade(
+						db: SQLiteDatabase,
+						oldVersion: Int,
+						newVersion: Int
+					) {
+						// Print in logcat the warning about the datastore changes
+						Log.w(
+							TAG,
+							"Actualizando base de datos de la versión " + oldVersion + " a la "
+									+ newVersion + ", los datos antiguos serán eliminados"
+						)
+
+						// Drop contactos table
+						db.execSQL("DROP TABLE IF EXISTS contactos")
+
+						// Call the constructor method to recreate the datastore
+						onCreate(db)
+					}
+				}
+
+				companion object {
+					// Registra el nombre de la aplicación para el log
+					const val TAG = "Datos"
+
+					// Datos generales del almacenamiento local
+					const val DB_Nombre = "LocalDB"
+					const val DB_Version = 1
+					const val DB_Tabla = "contactos"
+
+					// Definición de los campos de la tabla contactos
+					const val Iden = "iden"
+					const val Nombre = "nombre"
+					const val Apellidos = "apellidos"
+					const val eMail = "email"
+					const val Celular = "celular"
+
+					// Construye comando SQL para crear la tabla contactos
+					const val creaBase = "create table contactos(" +
+							"iden integer primary key autoincrement, " +
+							"nombre text not null, " +
+							"apellidos text not null, " +
+							"email text not null, " +
+							"celular integer not null);"
+				}
+
+				// --------------------------------------
+				// Commons database methods
+				// --------------------------------------
+				// Class constructor
+				init {
+					// Creates a new instance of the database helper
+					dbHelper = DatabaseHelper(context)
+				}
+			}
+		
+		
+	- Save changes	
+
+		
+Step 04 - Changes application behaviour
+
+	- Open app/java/<dominio>.<aplicacion>/MainActivity.kt
+	
+		- Add libraries:
+		
+			import android.util.Log
+			
+			
+		- Add variables before onCreate() function:	
+
+			var db = DBAdapter(this)
+			val TAG = "SQLite Demo"
+			
+			
+		- Add the next code into the onCreate() function:	
+		
+			preCargarDatos()
+			
+		
+		- Add the next code after the onCreate() function:	
+		
+			private fun preCargarDatos() {
+				var id: Long
+
+				// Open database
+				db.open()
+
+				// Insert data collection
+				id = db.insContact("Jhon", "Allen Valerin", "jhallenva@est.utn.ac.cr", 86852507)
+				Log.v(TAG, "Registrando usuario [ $id ]")
+
+				id = db.insContact("Eduard Andres", "Arias Quiros", "edariasqu@est.utn.ac.cr", 83872404)
+				Log.v(TAG, "Registrando usuario [ $id ]")
+
+				id = db.insContact("Christopher", "Carmona Elizondo", "chcarmonael@est.utn.ac.cr", 63627184)
+				Log.v(TAG, "Registrando usuario [ $id ]")
+
+				id = db.insContact("William Jose", "Cubero Navarro", "wicuberona@est.utn.ac.cr", 62363839)
+				Log.v(TAG, "Registrando usuario [ $id ]")
+
+				id = db.insContact("William Jesus", "Delgado Vargas", "wdelgadov@est.utn.ac.cr", 71751788)
+				Log.v(TAG, "Registrando usuario [ $id ]")
+
+				id = db.insContact("Dinier Andres", "Ferreto Moraga", "diferretomo@est.utn.ac.cr", 60329853)
+				Log.v(TAG, "Registrando usuario [ $id ]")
+
+				id = db.insContact("Sebastian Alberto", "Mata Ortega", "semataoe@est.utn.ac.cr", 87244352)
+				Log.v(TAG, "Registrando usuario [ $id ]")
+
+				id = db.insContact("Jose Andres", "Nuñez Guerrero", "onunezgu@est.utn.ac.cr", 62602552)
+				Log.v(TAG, "Registrando usuario [ $id ]")
+
+				id = db.insContact("Kenneth Josue", "Piedra Vargas", "kepiedravar@est.utn.ac.cr", 61277982)
+				Log.v(TAG, "Registrando usuario [ $id ]")
+
+				id = db.insContact("Alejandro Jose", "Rodriguez Jaen", "alrodriguezja@est.utn.ac.cr", 84452876)
+				Log.v(TAG, "Registrando usuario [ $id ]")
+
+				id = db.insContact("Melanie", "Rodriguez Jimenez", "merodriguezji@est.utn.ac.cr", 86706999)
+				Log.v(TAG, "Registrando usuario [ $id ]")
+
+				id = db.insContact("Emmanuel de Jesus", "Rodriguez Solano", "emrodriguezso@est.utn.ac.cr", 72149100)
+				Log.v(TAG, "Registrando usuario [ $id ]")
+
+				id = db.insContact("Angelica Marian", "Siles Diaz", "emrodriguezso@est.utn.ac.cr", 60381539)
+				Log.v(TAG, "Registrando usuario [ $id ]")
+
+				id = db.insContact("Jocksan Lirion", "Vargas Rodriguez", "jovargasro@est.utn.ac.cr", 85136696)
+				Log.v(TAG, "Registrando usuario [ $id ]")
+
+				id = db.insContact("Marvin Adrian", "Vasquez Rodriguez", "mavasquezro@est.utn.ac.cr", 61209487)
+				Log.v(TAG, "Registrando usuario [ $id ]")
+
+				// Close database
+				db.close()
+			}
+		
+	- Save changes
+
+
+Step 05 - Run application
+
+	Please review the logcat window and be happy
+	
+	
+Step 06	- Changes the character strings
+
+	- Open app/res/values/strings.xml	
+	
+		- Add the new lines:
+		
+			<string name="tit_main_activity">Ejemplo de Listas</string>
+			<string name="lbl_simplex">Lista Sencilla</string>
+			<string name="lbl_complex">Lista Compleja</string>			
+			
+	- Save changes		
+		
+
+Step 07 - Changes main layout
+
+	- Open app/res/layout/activity_main.xml
+	
+		- Delete the TextView
+		
+		- Write the next code:
+		
+			<LinearLayout
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:layout_margin="5dp"
+				android:orientation="vertical"
+				app:layout_constraintBottom_toBottomOf="parent"
+				app:layout_constraintEnd_toEndOf="parent"
+				app:layout_constraintStart_toStartOf="parent"
+				app:layout_constraintTop_toTopOf="parent">
+
+				<TextView
+					android:id="@+id/textView"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:layout_marginLeft="10dp"
+					android:layout_marginTop="25dp"
+					android:layout_marginRight="10dp"
+					android:layout_marginBottom="45dp"
+					android:fontFamily="sans-serif-black"
+					android:text="@string/tit_main_activity"
+					android:textAlignment="center"
+					android:textSize="24sp" />
+
+				<Button
+					android:id="@+id/btnSimplex"
+					style="@style/Widget.AppCompat.Button"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:text="@string/lbl_simplex" />
+
+				<Button
+					android:id="@+id/btnComplex"
+					style="@style/Widget.AppCompat.Button"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:text="@string/lbl_complex" />
+
+			</LinearLayout>
+		
+	- Save changes	
+	
+	
+Step 08 - Create Simple List Activity
+
+	- On app root folder right click
+		
+		- Select New - Activity - Empty Views Activity
+		
+			- Activity Name......: SimpleListActivity
+			- Layout Name........: activity_simple_list
+			- Package Name.......: <dominio>.<aplicacion>
+			- Source Language....: Kotlin
+			- Target Source Set..: main 
+			
+			
+Step 09 - Changes Simple List layout
+
+	- Open app/res/layout/activity_simple_list.xml
+	
+		- Delete all content
+		
+		- Replace with the next code:
+
+			<?xml version="1.0" encoding="utf-8"?>
+			<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:padding="10dp"
+				android:orientation="vertical">
+
+				<TextView
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:layout_marginLeft="10dp"
+					android:layout_marginTop="20dp"
+					android:layout_marginRight="10dp"
+					android:layout_marginBottom="25dp"
+					android:fontFamily="sans-serif-black"
+					android:text="@string/lbl_simplex"
+					android:textAlignment="center"
+					android:textSize="24sp" />
+
+				<ListView
+					android:id="@+id/lstSimp"
+					android:layout_width="match_parent"
+					android:layout_height="match_parent">
+				</ListView>
+			</LinearLayout>			
+			
+	- Save Changes		
+	
+	
+Step 10 - Changes Simple List behaviour
+
+	- Open app/java/<dominio>.<aplicacion>/SimpleListActivity.kt
+	
+		- Add libraries:
+		
+			import android.database.Cursor
+			import android.widget.AdapterView.OnItemClickListener
+			import android.widget.ArrayAdapter
+			import android.widget.ListView
+			import android.widget.Toast
+			
+			
+		- Add variables before onCreate() function:	
+
+			 var db = DBAdapter(this)
+			
+			
+		- Add the next code into the onCreate() function:	
+		
+			// Creates local list view object
+			var lstSimp = findViewById(R.id.lstSimp) as ListView
+
+			// Create an ArrayAdapter object to populate the list
+			val adapter = ArrayAdapter(
+				this,
+				android.R.layout.simple_list_item_1, android.R.id.text1, cargaNombres()!!
+			)
+
+			// Assign adapter to the list view
+			lstSimp.setAdapter(adapter)
+
+			// Define on click method over list items
+			lstSimp.onItemClickListener =
+				OnItemClickListener { parent, view, position, id ->
+
+					// Retrieves text from position
+					val itemValue = lstSimp.getItemAtPosition(position) as String
+
+					// Show Toast
+					Toast.makeText(
+						applicationContext,
+						"Position :$position  Nombre : $itemValue", Toast.LENGTH_LONG
+					).show()
+				}
+		
+		
+		- Add the next code after the onCreate() function:
+		
+			private fun cargaNombres(): Array<String?>? {
+				// Open database
+				db.open()
+
+				// Retrieves all contacts
+				val c: Cursor = db.getAllcontacts
+
+				// Creates array of names
+				val nombres = arrayOfNulls<String>(c.count)
+
+				// Creates list of names
+				var i = 0
+				if (c.moveToFirst()) {
+					do {
+						nombres[i++] = c.getString(1)
+					} while (c.moveToNext())
+				}
+
+				// Close database
+				db.close()
+
+				// Return list of names
+				return nombres
+			}
+		
+	- Save changes
+
+
+Step 11 - Changes application behaviour
+
+	- Open app/java/<dominio>.<aplicacion>/MainActivity.kt
+	
+		- Add libraries:	
+
+			import android.widget.Button
+			
+			
+		- Add variables before onCreate() function:	
+		
+			private lateinit var btnSimplex: Button
+			private lateinit var btnComplex: Button
+			
+		
+		- Add the next code into the onCreate() function:
+		
+			- Note: the sentence call the preCargarDatos() function must be commented
+			
+				//preCargarDatos()
+				
+			
+			btnSimplex = findViewById(R.id.btnSimplex)
+			btnComplex = findViewById(R.id.btnComplex)	
+			
+			
+			btnSimplex.setOnClickListener(View.OnClickListener {
+				val intent = Intent(applicationContext, SimpleListActivity::class.java)
+				startActivity(intent)
+			})
+	
+	- Save changes
+
+
+Step 12 - Run again
+
+	Be happy again
+
+
+Step 13 - Create Multidata layout
+
+	- On app/res/layout folder right click
+		
+		- Select New - Layout Resource File
+		
+			- File name.......: multidata
+			- Root element....: LinearLayout
+			- Source set......: main src/main/res
+			- Directory name..: layout
+
+
+	- Edit app/res/layout/multidata.xml code
+	
+		- Delete all content.
+		
+		- Writes the next code:
+		
+			<?xml version="1.0" encoding="utf-8"?>
+			<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:layout_margin="10dp"
+				android:background="#ffffcc"
+				android:orientation="vertical"
+				android:padding="10dp">
+
+				<TextView
+					android:id="@+id/txtid"
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content"
+					android:textSize="10sp"
+					android:textStyle="bold"
+					android:visibility="invisible" />
+
+				<TextView
+					android:id="@+id/txtNombre"
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content"
+					android:textSize="18sp"
+					android:textStyle="bold" />
+
+				<TextView
+					android:id="@+id/txtApellidos"
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content"
+					android:textSize="18sp"
+					android:textStyle="bold" />
+
+				<TextView
+					android:id="@+id/txtEmail"
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content"
+					android:textSize="18sp"
+					android:textStyle="bold" />
+
+				<TextView
+					android:id="@+id/txtCelular"
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content"
+					android:textSize="18sp"
+					android:textStyle="bold" />
+
+			</LinearLayout>
+		
+	- Save changes
+
+
+Step 14 - Create Complex List Activity
+
+	- On app root folder right click
+		
+		- Select New - Activity - Empty Views Activity
+		
+			- Activity Name......: ComplexListActivity
+			- Layout Name........: activity_complex_list
+			- Package Name.......: <dominio>.<aplicacion>
+			- Source Language....: Kotlin
+			- Target Source Set..: main	
+	
+
+Step 15 - Changes Complex List layout
+
+	- Open app/res/layout/activity_complex_list.xml
+	
+		- Delete all content
+		
+		- Replace with the next code:
+	
+			<?xml version="1.0" encoding="utf-8"?>
+			<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+				xmlns:tools="http://schemas.android.com/tools"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:padding="10dp"
+				tools:context=".ComplexListActivity">
+				
+				<TextView
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:layout_marginLeft="10dp"
+					android:layout_marginTop="20dp"
+					android:layout_marginRight="10dp"
+					android:layout_marginBottom="25dp"
+					android:fontFamily="sans-serif-black"
+					android:text="@string/lbl_complex"
+					android:textAlignment="center"
+					android:textSize="24sp" />
+
+				<ListView
+					android:id="@+id/lstComp"
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content" />
+
+			</LinearLayout>			
+			
+	- Save changes		
+			
+	
+Step 16 - Create List Adapter
+
+	- Right click on app/java/<dominio>.<aplicacion>
+	
+		- Select New - Kotlin Class/File
+
+			- Name...: ListAdapter.kt
+			
+			
+		- Delete the class code (maintain the application references package) and write:	
+	
+			import android.app.Activity
+			import android.view.View
+			import android.view.ViewGroup
+			import android.widget.ArrayAdapter
+			import android.widget.TextView
+
+			class ListAdapter(val context: Activity,
+							   val ids: Array<String?>,
+							   val Nombres: Array<String?>,
+							   val Apellidos: Array<String?>,
+							   val eMails: Array<String?>,
+							   val Celulares: Array<String?>): ArrayAdapter<String?>(context,
+				R.layout.activity_complex_list, ids){
+
+				override fun getView(position: Int, view: View?, parent: ViewGroup): View {
+					val inflater = context.layoutInflater
+					val rowView: View = inflater.inflate(R.layout.multidata, null, true)
+
+					val txtId = rowView.findViewById<View>(R.id.txtid) as TextView
+					val txtNombre = rowView.findViewById<View>(R.id.txtNombre) as TextView
+					val txtAppellidos = rowView.findViewById<View>(R.id.txtApellidos) as TextView
+					val txtEmail = rowView.findViewById<View>(R.id.txtEmail) as TextView
+					val txtCelular = rowView.findViewById<View>(R.id.txtCelular) as TextView
+
+					txtId.text = ids[position]
+					txtNombre.text = Nombres[position]
+					txtAppellidos.text = Apellidos[position]
+					txtEmail.text = eMails[position]
+					txtCelular.text = Celulares[position]
+
+					return rowView
+				}
+			}
+			
+	- Save changes
+
+
+Step 17 - Changes Complex List behaviour
+
+	- Open app/java/<dominio>.<aplicacion>/ComplexListActivity.kt
+		
+		- Add libraries:
+		
+			import android.database.Cursor
+			import android.widget.AdapterView.OnItemClickListener
+			import android.widget.Toast
+			import android.widget.ListView
+			
+			
+		- Add variables before onCreate() function:
+
+			private var db = DBAdapter(this)
+			private lateinit var lstComp: ListView
+			
+	
+		- Add the next code into the onCreate() function:
+		
+			lstComp = findViewById(R.id.lstComp)
+		
+			lstComp.onItemClickListener =
+				OnItemClickListener { parent, view, position, id ->
+
+					// Retrieves text from position
+					val itemValue = lstComp.getItemAtPosition(position) as String
+					buscaPersona(itemValue.toInt())
+				}
+
+			// Call cargaContactos function
+			cargaContactos()
+		
+		
+		- Add the next code after the onCreate() function:
+
+			fun buscaPersona(id: Int){
+				// Open database
+				db.open()
+
+				// Retrieve contact by id
+				val c: Cursor? = db.getContact_by_Id(id)
+
+				if(c!!.count > 0){
+					c.moveToFirst()
+
+					// Use Toast to show contact data
+					Toast.makeText(
+						applicationContext,
+						"Nombre : ${c.getString(1)}\nApellidos : ${c.getString(2)}", Toast.LENGTH_LONG
+					).show()
+				}
+
+				// Close database
+				db.close()
+			}
+
+			fun cargaContactos() {
+				// Open database
+				db.open()
+
+				// Retrieve all contacts
+				val c: Cursor = db.getAllcontacts
+
+				// Declare arrays to store data
+				val ids = arrayOfNulls<String>(c.count)
+				val nombres = arrayOfNulls<String>(c.count)
+				val apellidos = arrayOfNulls<String>(c.count)
+				val correos = arrayOfNulls<String>(c.count)
+				val celulares = arrayOfNulls<String>(c.count)
+
+				// Load data into arrays
+				var i = 0
+				if (c.moveToFirst()) {
+					do {
+						ids[i] = c.getString(0)
+						nombres[i] = c.getString(1)
+						apellidos[i] = c.getString(2)
+						correos[i] = c.getString(3)
+						celulares[i++] = c.getString(4)
+					} while (c.moveToNext())
+				}
+
+				// Close database
+				db.close()
+
+				// Load data into ListView
+				lstComp.adapter = ListAdapter(this, ids, nombres, apellidos, correos, celulares)
+			}
+
+	- Save changes
+	
+	
+Step 18 - Changes application behaviour
+
+	- Open app/java/<dominio>.<aplicacion>/MainActivity.kt
+	
+		- Add the next code into the onCreate() function:
+
+			btnComplex.setOnClickListener(View.OnClickListener {
+				val intent = Intent(applicationContext, ComplexListActivity::class.java)
+				startActivity(intent)
+			})
+			
+			
+Step 19 - Run again
+
+	Be very very happy again
+
+
+Step 20 - Add permissions into Android Manifest
+
+	- Open app/manifests/AndroidManifest.xml
+	
+		- Add permissions (before application segment)
+		
+			<uses-feature android:name="android.hardware.telephony" android:required="false" />
+			<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+			<uses-permission android:name="android.permission.INTERNET" />
+			<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+			<uses-permission android:name="android.permission.CALL_PHONE" />
+			
+	- Save changes
+
+
+Step 21 - Create Call Phone Function
+
+	- Open app/java/<dominio>.<aplicacion>/ListAdapter.kt
+	
+		- Add libraries:
+	
+			import android.content.Intent.ACTION_CALL
+			import android.content.Intent
+			import android.net.Uri
+			
+	
+		- Into the getView() function and before of return rowView sentence writes:
+		
+			txtCelular.setOnClickListener {
+				call(Celulares[position]!!)
+			}
+
+
+		- After the getView() function writes:
+		
+			fun call(celular: String){
+				context.startActivity(Intent(ACTION_CALL, Uri.parse("tel:$celular")))
+			}
+			
+			
+	- Save changes
+	
+
+Step 22 - Changes Complex List behaviour
+
+	- Open app/java/<dominio>.<aplicacion>/ComplexListActivity.kt
+		
+		- Add libraries:			
+		
+			import android.os.Build
+			import android.Manifest
+			import android.content.pm.PackageManager
+			import androidx.activity.result.contract.ActivityResultContracts
+			import androidx.core.content.ContextCompat
+			
+		
+		- Add the next code after the onCreate() function (new functions):
+
+			private fun requestPermission(){
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+					when{
+						ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE)== PackageManager.PERMISSION_GRANTED ->{
+							cargaContactos()
+						}
+						else -> requestPermissionLauncher.launch(Manifest.permission.CALL_PHONE)
+					}
+				}else{
+					cargaContactos()
+				}
+			}
+
+			private val requestPermissionLauncher = registerForActivityResult(
+				ActivityResultContracts.RequestPermission()
+			){isGranted -> if (isGranted){
+				cargaContactos()
+			}else{
+				Toast.makeText(this, "Se requieren permisos", Toast.LENGTH_SHORT).show()
+			}}
+			
+			
+		- Into the onCreate() function:
+		
+			- Replace this sentences
+			
+				// Call cargaContactos function
+				cargaContactos()
+
+			with this sentences
+
+				// Call cargaContactos function with previous permission check
+				requestPermission()
+
+				
+Step 23 - Run again
+
+	Note: This time try to press where your partner's phone number is located
+
+	I hope you are very very happy
+	
+	
+Step 24 - Create Email Activity
+
+	- On app root folder right click
+		
+		- Select New - Activity - Empty Views Activity
+		
+			- Activity Name......: EmailActivity
+			- Layout Name........: activity_email
+			- Package Name.......: <dominio>.<aplicacion>
+			- Source Language....: Kotlin
+			- Target Source Set..: main	
+
+	
+Step 25	- Changes the character strings
+
+	- Open app/res/values/strings.xml	
+	
+		- Add the new lines:
+
+			<string name="correodestino">Correo de destino</string>
+			<string name="asunto">Asunto</string>
+			<string name="mensaje">Mensaje</string>
+
+			<string name="valdestino">Debe suministar un destinatario</string>
+			<string name="valasunto">Debe suministar un asunto</string>
+			<string name="valmensaje">Debe suministar un mensaje</string>
+
+			<string name="btnEnviar">Enviar mensaje</string>			
+	
+	- Save changes	
+				
+
+Step 26 - Changes Email layout
+
+	- Open app/res/layout/activity_email.xml
+	
+		- Delete all content
+		
+		- Replace with the next code:
+
+			<?xml version="1.0" encoding="utf-8"?>
+			<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+				xmlns:tools="http://schemas.android.com/tools"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:orientation="vertical"
+				android:paddingLeft="16dp"
+				android:paddingRight="16dp"
+				tools:context=".EmailActivity">
+
+				<LinearLayout
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:orientation="horizontal">
+
+					<EditText
+						android:id="@+id/txtDestino"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:layout_marginTop="20dp"
+						android:layout_weight="1"
+						android:ems="10"
+						android:hint="@string/correodestino"
+						android:inputType="textEmailAddress"
+						android:minHeight="48dp"
+						android:textColorHint="#757575"
+						android:autofillHints="" />
+
+				</LinearLayout>
+
+				<LinearLayout
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:orientation="horizontal">
+
+					<EditText
+						android:id="@+id/txtAsunto"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:layout_weight="1"
+						android:ems="10"
+						android:hint="@string/asunto"
+						android:inputType="textPersonName"
+						android:textColorHint="#757575"
+						tools:ignore="TouchTargetSizeCheck,TouchTargetSizeCheck"
+						android:autofillHints="" />
+				</LinearLayout>
+
+				<LinearLayout
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:orientation="horizontal">
+					<EditText
+						android:id="@+id/txtMensaje"
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:layout_weight="1"
+						android:ems="10"
+						android:gravity="start|top"
+						android:hint="@string/mensaje"
+						android:inputType="textMultiLine"
+						android:lines="10"
+						android:autofillHints="" />
+				</LinearLayout>
+
+				<LinearLayout
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:orientation="horizontal">
+
+					<Button
+						android:id="@+id/btnEnviar"
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:layout_weight="1"
+						android:text="@string/btnEnviar" />
+				</LinearLayout>
+
+			</LinearLayout>
+
+
+	- Save changes
+
+
+Step 27 - Changes Email Activity behaviour
+
+	- Open app/java/<dominio>.<aplicacion>/EmailActivity.kt
+		
+		- Add libraries:
+
+			import android.content.Intent
+			import android.widget.Button
+			import android.widget.EditText
+			import android.widget.Toast
+			
+		
+		- Into the onCreate() function writes:
+		
+			// retrieves email as parameter
+			val email = intent.extras!!.get("emailDestino")!!.toString()
+
+			// create instances from the view
+			var txtdestino: EditText = findViewById(R.id.txtDestino)
+			var txtasunto : EditText = findViewById(R.id.txtAsunto)
+			var txtmensaje: EditText = findViewById(R.id.txtMensaje)
+			var btnenviar : Button = findViewById(R.id.btnEnviar)
+
+			// update the view objects
+			txtdestino.setText(email)
+			txtasunto.setText("Solicito ayuda")
+			txtasunto.selectAll()
+
+			// set the click event for the button
+			btnenviar.setOnClickListener {
+				var aplicar = true
+
+				// Validate the fields is not empty
+				if(txtdestino.text.toString().isEmpty()){
+					Toast.makeText(this,R.string.valdestino, Toast.LENGTH_SHORT).show()
+					txtdestino.requestFocus()
+					aplicar = false
+				}else if(txtasunto.text.toString().isEmpty()){
+					Toast.makeText(this,R.string.valasunto, Toast.LENGTH_SHORT).show()
+					txtasunto.requestFocus()
+					aplicar = false
+				}else if(txtmensaje.text.toString().isEmpty()){
+					Toast.makeText(this,R.string.valmensaje, Toast.LENGTH_SHORT).show()
+					txtmensaje.requestFocus()
+					aplicar = false
+				}
+
+				// Calls the device's messaging process
+				if(aplicar){
+					val intent = Intent(Intent.ACTION_SEND)
+					intent.putExtra(Intent.EXTRA_EMAIL, arrayOf<String>(txtdestino.text.toString()))
+					intent.putExtra(Intent.EXTRA_SUBJECT, txtasunto.text.toString())
+					intent.putExtra(Intent.EXTRA_TEXT, txtmensaje.text.toString())
+					intent.type = "message/rfc822"
+					startActivity(Intent.createChooser(intent, "Elije un cliente de correo:"))
+				}
+			}
+		
+	- Save changes
+
+
+Step 28 - Create Send Email Function
+
+	- Open app/java/<dominio>.<aplicacion>/ListAdapter.kt
+	
+		- Into the getView() function and before of return rowView sentence writes:
+		
+			txtEmail.setOnClickListener {
+				email(eMails[position]!!)
+			}
+
+
+		- After the getView() function writes:
+		
+			fun email(email: String){
+				val laotra = Intent(context, EmailActivity::class.java)
+				laotra.putExtra("emailDestino", email)
+				context.startActivity(laotra)
+			}
+			
+			
+	- Save changes	
+	
+
+Step 29 - Run again
+
+	Note: This time try to press where your partner's eMail is located
+
+	I hope you are very very happy	
+	
+	

@@ -1,0 +1,233 @@
+===============================================================================================
+Institute....: Universidad Técnica Nacional
+Campus.......: Pacífico
+Career.......: Tecnologías de Información
+Course.......: ITI-623 - Desarrollo de Aplicaciones Móviles I
+Period.......: 3-2024
+Document.....: 09_SharedPreferences.txt
+Goals........: Store data in application local storage
+References...: https://developer.android.com/reference/android/content/SharedPreferences
+Professor....: Jorge Ruiz (york)
+Student......:
+===============================================================================================
+
+Step 01 - Open Android Studio (Koala version)
+
+
+Step 02 - Create new project Empty Views Activity
+
+	Name...........: 09_SharedPreferences
+	Package name...: com.demoyork.a09_sharedpreferences
+	Save location..: D:\Documentos\Laboratorios\Android\2_2023\09_SharedPreferences
+	Language.......: Kotlin
+	Minimum SDK....: API 30 ("R", Android 11.0)
+	Build Config...: Kotlin DSL (build.gradle.kts)[Recommended]
+	
+	
+Step 03 - Create Login Activity
+
+	- On app root folder right click
+		
+		- Select New - Activity - Empty Views Activity
+	
+			- Activity Name......: LoginActivity
+			- Layout Name........: activity_login
+			- Package Name.......: <dominio>.<aplicacion>
+			- Source Language....: Kotlin
+			- Target Source Set..: main 
+						
+
+Step 05 - Changes the character strings
+
+	- Open app/res/values/strings.xml	
+	
+		- Add the new lines:
+
+			<string name="title_activity_login">Validando usuario</string>
+			<string name="prompt_email">Correo electrónico</string>
+			<string name="prompt_password">Contraseña</string>
+			<string name="prompt_login">Ingresar</string>
+			
+			<string name="tit_Error">Error</string>
+			<string name="msg_Required">El correo electrónico y contraseña no pueden estar vacíos</string>
+			<string name="btn_Ok">Aceptar</string>
+			
+			
+	- Save changes
+
+
+Step 06 - Changes login layout
+
+	- Open app/res/layout/activity_login.xml
+	
+		- Delete all content
+		
+		- Replace with the next code:	
+		
+			<?xml version="1.0" encoding="utf-8"?>
+			<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+				xmlns:tools="http://schemas.android.com/tools"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:orientation="vertical"
+				android:padding="5dp"
+				tools:context=".LoginActivity" >
+
+				<TextView
+					android:id="@+id/textView"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:fontFamily="sans-serif-black"
+					android:text="@string/title_activity_login"
+					android:layout_marginTop="25dp"
+					android:layout_marginLeft="10dp"
+					android:layout_marginRight="10dp"
+					android:layout_marginBottom="45dp"
+					android:textAlignment="center"
+					android:textSize="24sp" />
+
+				<EditText
+					android:id="@+id/txtEmail"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:autofillHints=""
+					android:ems="10"
+					android:hint="@string/prompt_email"
+					android:inputType="textEmailAddress"
+					android:layout_marginLeft="10dp"
+					android:layout_marginRight="10dp"
+					android:minHeight="48dp" />
+
+				<EditText
+					android:id="@+id/txtContra"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:autofillHints=""
+					android:ems="10"
+					android:hint="@string/prompt_password"
+					android:inputType="textPassword"
+					android:layout_marginLeft="10dp"
+					android:layout_marginRight="10dp"
+					android:layout_marginBottom="45dp"
+					android:minHeight="48dp" />
+
+				<Button
+					android:id="@+id/btnAutenticar"
+					style="@style/Widget.AppCompat.Button"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:text="@string/prompt_login"
+					android:textAppearance="@style/TextAppearance.AppCompat.Large"
+					android:layout_marginLeft="25dp"
+					android:layout_marginRight="25dp"/>
+					
+			</LinearLayout>
+		
+		
+	- Save changes
+
+
+Step 07 - Changes application behaviour
+
+	- Open app/java/<dominio>.<aplicacion>/MainActivity.kt
+	
+		- Add libraries:
+		
+			import android.content.Context
+			import android.content.Intent
+			
+			
+		- Add variables before onCreate() function:	
+
+			var email: String? = null
+			var contra: String? = null
+			
+			
+		- Add the next code into the onCreate() function:
+		
+			val prefe = getSharedPreferences("appData", Context.MODE_PRIVATE)
+			email = prefe.getString("email","")
+			contra = prefe.getString("contra","")
+
+			if(email.toString().trim { it <= ' ' }.isEmpty()){
+				val intent = Intent(this, LoginActivity::class.java)
+				startActivity(intent)
+			}
+		
+		
+	- Save changes	
+	
+	
+Step 08	- Execute application
+
+	Be happy
+	
+	
+Step 09 - Changes login behaviour
+
+	- Open app/java/<dominio>.<aplicacion>/LoginActivity.kt
+	
+		- Add libraries:	
+		
+			import android.widget.Button
+			import android.widget.EditText
+		
+		
+		- Add variables before onCreate() function:	
+		
+			private lateinit var btnAutenticar: Button
+			private lateinit var txtEmail: EditText 
+			private lateinit var txtContra: EditText
+		
+		
+		- Add the next code into the onCreate() function:
+		
+			btnAutenticar = findViewById(R.id.btnAutenticar)
+			txtEmail = findViewById(R.id.txtEmail)
+			txtContra = findViewById(R.id.txtContra)
+			
+			btnAutenticar.setOnClickListener {
+				if (txtEmail.text.isNotEmpty() && txtContra.text.isNotEmpty()) {
+					val email = txtEmail.text.toString()
+					val contra = txtContra.text.toString()
+
+					// create editor object for write app data
+					val prefe = getSharedPreferences("appData", MODE_PRIVATE)
+					val editor = prefe.edit()
+
+					// set editor fields with the new values
+					editor.putString("email", email)
+					editor.putString("contra", contra)
+
+					// write the authentication data into the local storage
+					editor.apply()
+
+					// call back to main activity
+					finish()
+				} else {
+					showAlert(R.string.tit_Error, R.string.msg_Required)
+				}
+			}
+			
+		
+		- Add the next code after the onCreate() function:	
+		
+			private fun showAlert(titu: Int, mssg: Int) {
+				val diagMessage = AlertDialog.Builder(this)
+				diagMessage.setTitle(titu)
+				diagMessage.setMessage(mssg)
+				diagMessage.setPositiveButton(R.string.btn_Ok, null)
+
+				val diagVentana: AlertDialog = diagMessage.create()
+				diagVentana.show()
+			}
+		
+	- Save changes
+
+
+Step 10	- Execute application again
+
+	On this occasion, write the authentication data and register it, 
+	then close the application and run it again.
+
+	I hope you enjoyed the code.		
