@@ -1,0 +1,1120 @@
+===============================================================================================
+Institute....: Universidad Técnica Nacional
+Campus.......: Pacífico
+Career.......: Tecnologías de Información
+Course.......: ITI-623 - Desarrollo de Aplicaciones Móviles I
+Period.......: 3-2024
+Document.....: 12_FireBaseAccess.txt
+Goals........: Explains Google Firebase connection
+References...: 
+Professor....: Jorge Ruiz (york)
+Student......:
+===============================================================================================
+
+Step 01 - Create a Firebase Project
+
+	- You must create a Google Firebase project applying the steps:
+	
+		01 to 11 in the Configuración_Firebase_Website.txt used in 
+		web III course
+		
+		
+	- Use the york-nw.zip file to copy files in your new project
+	
+	- To deploy your new application
+	
+		- Register a new user
+		
+		- Register Categories data, include image
+	
+
+Step 02 - Open Android Studio (Koala or Ladybug version)
+
+
+Step 03 - Create new project Empty Views Activity
+
+	Name...........: 12_FireBaseAccess
+	Package name...: com.demoyork.a12_firebaseaccess
+	Save location..: D:\Documentos\Laboratorios\Android\2_2023\12_FireBaseAccess
+	Language.......: Kotlin
+	Minimum SDK....: API 30 ("R", Android 11.0) or API 33 ("Tiramisu", Android 13.0) 
+	Build Config...: Kotlin DSL (build.gradle.kts)[Recommended]
+	
+
+Step 04 - Changes application permissions
+
+	- Open app/manifests/AndroidManifest.xml
+	
+		- Before application block, writes:
+		
+			<uses-permission android:name="android.permission.INTERNET" />
+			<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+			
+			
+		- Into application block (header of block), add:	
+		
+			android:usesCleartextTraffic="true"	
+			
+    - Save changes
+	
+	
+Step 05	- Changes the strings content
+
+	- Open app/res/values/strings.xml	
+	
+		- Add the new lines:	
+		
+			<string name="imagen_de_categoria">Imagen del Categoría</string>
+
+			<!-- Login and signup activity -->
+			<string name="title_activity_login">Validando usuario</string>
+			<string name="title_activity_signup">Registrando usuario</string>
+			<string name="title_activity_main">Lista de Categorías</string>
+
+			<string name="prompt_name">Nombre</string>
+			<string name="prompt_email">Correo electrónico</string>
+			<string name="prompt_password">Contraseña</string>
+			<string name="prompt_password_confirm">Confirmar contraseña</string>
+			<string name="prompt_registerhere">Registrate aquí</string>
+			<string name="prompt_register">Registrarse</string>
+			<string name="prompt_login">Ingresar</string>
+				
+	- Save changes
+	
+
+Step 06 - Creates entities package
+
+	- On app/kotlin+java/<dominio>.<aplicacion> righ click
+	
+		- Select New - Package
+		
+			- Name...: app/kotlin+java/<dominio>.<aplicacion>/entities
+
+			
+Step 07 - Creates User Class
+
+	- On app/kotlin+java/<dominio>.<aplicacion>/entities righ click
+	
+		- Select New - Kotlin class/file
+		
+			- Name...: cls_Usuario.kt
+		
+		
+	- Writes the next code into class body:
+
+		var token: String = ""
+		var nombre: String = ""
+		var email: String = ""
+		var contra: String = ""
+
+		constructor() {}
+
+		constructor(id: String, nombre: String, email: String, contra: String) {
+			this.token = id
+			this.nombre = nombre
+			this.email = email
+			this.contra = contra
+		}
+	
+	- Save changes
+
+------------------------------
+Listo, falta el paso 1 y utilizar las categorías
+------------------------------
+
+	
+	
+Step 08 - Connect your Android Application with Google Firebase project	
+	
+	- Remember have the Android Studio session connected with your Google account, I suppose that 
+	  is the same account used to create the Zodiaco project of the last week.
+	  
+	  In the right upper corner, you can see the user account icon, click on this and click on the button Add Account.
+	  
+	  Follow the instructions.
+	  
+	  
+	- Connecting Android project with your Google Firebase project
+
+		- In the main menu of Android Studio:
+
+			- Select Tools - Firebase
+			
+				- Must be appear a lateral right menu with the Google Firebase tools availables:
+				
+					- Open Authentication option:
+
+						- Select Authencate using a custom authentication system (without Java)
+						
+							- Connect your app to Firebase:
+							
+								(this process open the web browser with the google firebase console)
+								
+								- Select the tarjet project and take awhile
+								
+								- Accept the process and maybe appears in Androd Studio the follow message:
+
+									Your app "<dominio>.<aplicacion>" is now connected to Firebase project "your project name".
+									
+									
+							- Press button Add the Firebase Authentication SDK to your app
+
+								- Press button Accept Changes in the popup window 
+								
+								
+							- Go back to the previous menu	
+
+							
+					- Select Cloud FireStore: 
+					
+						- Get started with Cloud Firestore (without Java)
+					
+						- Press button Add the Cloud Firestore SDK to your app
+				
+							- Press button Accept Changes in the popup window
+	
+						- Go back to the previous menu	
+
+							
+					- Select Cloud Storage for Firebase:
+	
+						- Get started with Cloud Storage (without Java)
+						
+						- Press button Add the Cloud Storage SDK to your app
+				
+							- Press button Accept Changes in the popup window
+	
+						- Go back to the previous menu
+	
+	
+				- Close Firebase tools panel
+	
+	
+		- In the Android Project Explorer (left panel)
+		
+			- Open Gradle Scripts/build.gradle.kts(Module:app) 
+			
+				- In the dependencies section you can see: 
+	
+					implementation("com.google.firebase:firebase-auth:22.2.0")
+					implementation("com.google.firebase:firebase-firestore:24.9.1")
+					implementation("com.google.firebase:firebase-storage:20.3.0")
+					
+					
+			- Close file without changes		
+	
+	
+Step 09 - Creates User ui (containts login and signup actiuvities):	
+
+	- Creates ui package
+
+		- On app/kotlin+java/<dominio>.<aplicacion> righ click
+	
+			- Select New - Package
+		
+				- Name...: app/kotlin+java/<dominio>.<aplicacion>/ui
+				
+				
+	- Creates users package	
+	
+		- On app/kotlin+java/<dominio>.<aplicacion>/ui righ click
+	
+			- Select New - Package
+		
+				- Name...: app/kotlin+java/<dominio>.<aplicacion>/ui/users
+	
+	
+	- Creates signup activity:
+
+		- On app/kotlin+java/<dominio>.<aplicacion>/ui/users righ click
+		
+			- Select New - Activity - Empty Views Activity
+			
+				- Activity Name......: SignupActivity
+				- Layout Name........: activity_signup
+				- Package Name.......: <dominio>.<aplicacion>.ui
+				- Source Language....: Kotlin				
+	
+		- Save changes
+		
+		
+	- Creates login activity:
+
+		- On app/kotlin+java/<dominio>.<aplicacion>/ui/users righ click
+		
+			- Select New - Activity - Empty Views Activity
+			
+				- Activity Name......: LoginActivity
+				- Layout Name........: activity_login
+				- Package Name.......: <dominio>.<aplicacion>.ui
+				- Source Language....: Kotlin				
+	
+		- Save changes
+
+
+Step 10 - Changes Login layout:	
+
+	- Open On app/res/layout/activity_login.xml
+	
+		- Delete all content and replace with:
+		
+			<?xml version="1.0" encoding="utf-8"?>
+			<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+				xmlns:app="http://schemas.android.com/apk/res-auto"
+				xmlns:tools="http://schemas.android.com/tools"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:layout_margin="15dp"
+
+				android:orientation="vertical"
+				tools:context=".ui.LoginActivity" >
+
+				<TextView
+					android:id="@+id/textView"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:fontFamily="sans-serif-black"
+					android:text="@string/title_activity_login"
+					android:layout_marginTop="25dp"
+					android:layout_marginLeft="10dp"
+					android:layout_marginRight="10dp"
+					android:layout_marginBottom="45dp"
+					android:textAlignment="center"
+					android:textSize="24sp" />
+
+				<EditText
+					android:id="@+id/txtEmail"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:autofillHints=""
+					android:ems="10"
+					android:hint="@string/prompt_email"
+					android:inputType="textEmailAddress"
+					android:layout_marginLeft="10dp"
+					android:layout_marginRight="10dp"
+					android:minHeight="48dp"
+					android:textColorHint="#757575"/>
+
+				<EditText
+					android:id="@+id/txtContra"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:autofillHints=""
+					android:ems="10"
+					android:hint="@string/prompt_password"
+					android:inputType="textPassword"
+					android:layout_marginLeft="10dp"
+					android:layout_marginRight="10dp"
+					android:layout_marginBottom="45dp"
+					android:minHeight="48dp"
+					android:textColorHint="#757575"/>
+
+				<Button
+					android:id="@+id/btnAutenticar"
+					style="@style/Widget.AppCompat.Button"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:text="@string/prompt_login"
+					android:textAppearance="@style/TextAppearance.AppCompat.Large"
+					android:layout_marginLeft="35dp"
+					android:layout_marginRight="35dp"/>
+
+
+				<TextView
+					android:id="@+id/txtRegister"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:text="@string/prompt_registerhere"
+					android:textSize="18sp"
+					android:textAlignment="center"
+					android:layout_marginTop="25dp"/>
+
+			</LinearLayout>
+		
+		- Save changes	
+		
+
+Step 11 - Changes Signup layout:	
+
+	- Open On app/res/layout/activity_signup.xml
+	
+		- Delete all content and replace with:		
+		
+			<?xml version="1.0" encoding="utf-8"?>
+			<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+				xmlns:app="http://schemas.android.com/apk/res-auto"
+				xmlns:tools="http://schemas.android.com/tools"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:layout_margin="15dp"
+				android:orientation="vertical"
+				tools:context=".ui.SignupActivity" >
+
+				<TextView
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:fontFamily="sans-serif-black"
+					android:text="@string/title_activity_signup"
+					android:layout_marginTop="25dp"
+					android:layout_marginLeft="10dp"
+					android:layout_marginRight="10dp"
+					android:textAlignment="center"
+					android:textSize="24sp" />
+
+				<EditText
+					android:id="@+id/txtRNombre"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:autofillHints=""
+					android:ems="10"
+					android:hint="@string/prompt_name"
+					android:inputType="textEmailAddress"
+					android:layout_marginLeft="10dp"
+					android:layout_marginRight="10dp"
+					android:minHeight="48dp"
+					android:textColorHint="#757575"/>
+
+				<EditText
+					android:id="@+id/txtREmail"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:autofillHints=""
+					android:ems="10"
+					android:hint="@string/prompt_email"
+					android:inputType="textEmailAddress"
+					android:layout_marginLeft="10dp"
+					android:layout_marginRight="10dp"
+					android:minHeight="48dp"
+					android:textColorHint="#757575"/>
+
+				<EditText
+					android:id="@+id/txtRContra"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:autofillHints=""
+					android:ems="10"
+					android:hint="@string/prompt_password"
+					android:inputType="textPassword"
+					android:layout_marginLeft="10dp"
+					android:layout_marginRight="10dp"
+					android:minHeight="48dp"
+					android:textColorHint="#757575"/>
+
+				<EditText
+					android:id="@+id/txtRreContra"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:autofillHints=""
+					android:ems="10"
+					android:hint="@string/prompt_password_confirm"
+					android:inputType="textPassword"
+					android:layout_marginLeft="10dp"
+					android:layout_marginRight="10dp"
+					android:layout_marginBottom="45dp"
+					android:minHeight="48dp"
+					android:textColorHint="#757575"/>
+
+				<Button
+					android:id="@+id/btnRegistrarU"
+					style="@style/Widget.AppCompat.Button"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:text="@string/prompt_register"
+					android:textAppearance="@style/TextAppearance.AppCompat.Large"
+					android:layout_marginLeft="35dp"
+					android:layout_marginRight="35dp"/>
+
+			</LinearLayout>
+
+	- Save changes
+
+
+Step 12 - Changes Login Activity behaviour (call signup activity)
+
+	- Open app/kotlin+java/<dominio>.<aplicacion>/ui/users/LoginActivity.kt
+	
+		- Add libraries:
+			 
+			import android.app.Activity
+			import android.content.Context
+			import androidx.appcompat.app.AlertDialog			
+			import android.content.Intent
+			import android.widget.Button
+			import android.widget.EditText
+			import android.widget.TextView
+			
+			import com.google.firebase.auth.FirebaseAuth
+			
+			
+		- Add variables before onCreate() function:		
+		
+			var auth = FirebaseAuth.getInstance()
+
+			private lateinit var btnAutenticar: Button
+			private lateinit var txtEmail: EditText
+			private lateinit var txtContra: EditText
+			private lateinit var txtRegister: TextView
+			
+			
+		- Add the next code into the onCreate() function:
+
+			btnAutenticar = findViewById(R.id.btnAutenticar)
+			txtEmail = findViewById(R.id.txtEmail)
+			txtContra = findViewById(R.id.txtContra)
+			txtRegister = findViewById(R.id.txtRegister)
+
+			txtRegister.setOnClickListener {
+				goToSignup()
+			}
+			
+			btnAutenticar.setOnClickListener {
+				if(txtEmail.text.isNotEmpty() && txtContra.text.isNotEmpty()){
+					auth.signInWithEmailAndPassword(txtEmail.text.toString(), txtContra.text.toString()).addOnCompleteListener{
+						if (it.isSuccessful){
+							//Register the data into the local storage
+							val prefe = this.getSharedPreferences("appData", Context.MODE_PRIVATE)
+
+							//Create editor object for write app data
+							val editor = prefe.edit()
+
+							//Set editor fields with the new values
+							editor.putString("email", txtEmail.text.toString())
+							editor.putString("contra", txtContra.text.toString())
+
+							//Write app data
+							editor.commit()
+
+							// call back to main activity
+							Intent().let {
+								setResult(Activity.RESULT_OK)
+								finish()
+							}
+						}else{
+							showAlert("Error","Al autenticar el usuario")
+						}
+					}
+				}else{
+					showAlert("Error","El correo electrónico y contraseña no pueden estar vacíos")
+				}
+			}
+			
+			
+		- Add the next code after the onCreate() function:
+
+			private fun goToSignup() {
+				val intent = Intent(this, SignupActivity::class.java)
+				startActivity(intent)
+			}
+
+			private fun showAlert(titu:String, mssg: String){
+				val diagMessage = AlertDialog.Builder(this)
+				diagMessage.setTitle(titu)
+				diagMessage.setMessage(mssg)
+				diagMessage.setPositiveButton("Aceptar", null)
+
+				val diagVentana: AlertDialog = diagMessage.create()
+				diagVentana.show()
+			}
+			
+	- Save changes
+
+
+Step 13 - Changes Main Activity behaviour
+
+	- Open app/kotlin+java/<dominio>.<aplicacion>/MainActivity.kt
+	
+		- Add libraries:
+
+			import android.content.Context
+			import android.content.Intent
+			import android.widget.Toast
+			import <dominio>.<aplicacion>.ui.users.LoginActivity
+			import com.google.firebase.auth.FirebaseAuth			
+			
+			
+		- Add variables before onCreate() function:		
+
+			var auth = FirebaseAuth.getInstance()
+			var email: String? = null
+			var contra: String? = null
+			
+			
+		- Add the next code into the onCreate() function:
+
+			// intenta obtener el token del usuario del local storage, sino llama a la ventana de registro
+			val prefe = getSharedPreferences("appData", Context.MODE_PRIVATE)
+			email = prefe.getString("email","")
+			contra = prefe.getString("contra","")
+
+			if(email.toString().trim { it <= ' ' }.length == 0){
+				val intent = Intent(this, LoginActivity::class.java)
+				startActivity(intent)
+			}else {
+				val uid: String = auth.uid.toString()
+				if (uid == "null"){
+					auth.signInWithEmailAndPassword(email.toString(), contra.toString()).addOnCompleteListener {
+						if (it.isSuccessful) {
+							Toast.makeText(this,"Autenticación correcta", Toast.LENGTH_SHORT).show()
+						}
+					}
+				}
+				obtenerDatos()
+			}
+			
+			
+		- Add the next code after the onCreate() function:
+
+			private fun obtenerDatos() {
+				Toast.makeText(this,"Esperando hacer algo importante", Toast.LENGTH_LONG).show()
+			}
+		
+	- Save changes
+	
+	
+Step 14 - Run your application
+
+	- Test login with the stored user in Google Firebase project, if this process is successful, you must see 
+	  the screen of the activity main, and the user data will be stored in the SharedPreferences of the application. 
+	
+	- Be happy
+
+
+----------------------------------------------------------------------------------------------------------------
+Deploying the signup module (add new user), for this process is required to clear application data in your
+cellphone or in your Virtual Android Device, or delete application from your device
+----------------------------------------------------------------------------------------------------------------
+
+Step 15 - Changes Signup Activity behaviour again
+
+	- Open app/kotlin+java/<dominio>.<aplicacion>/ui/users/SignupActivity.kt
+	
+		- Add libraries:
+
+			import android.app.Activity
+			import android.content.Context
+			import android.content.Intent
+			import android.widget.EditText
+			import android.widget.Button
+			import android.widget.Toast
+
+			import com.google.firebase.auth.FirebaseAuth
+			import com.google.firebase.firestore.FirebaseFirestore
+
+			import java.util.Date
+			
+		
+		- Add variables before onCreate() function:
+		
+			var auth = FirebaseAuth.getInstance()
+			var db = FirebaseFirestore.getInstance()
+
+			private lateinit var txtRNombre: EditText
+			private lateinit var txtREmail: EditText
+			private lateinit var txtRContra: EditText
+			private lateinit var txtRreContra: EditText
+			private lateinit var btnRegistrarU: Button
+			
+			
+		- Add the next code into the onCreate() function:	
+	
+			txtRNombre = findViewById(R.id.txtRNombre)
+			txtREmail = findViewById(R.id.txtREmail)
+			txtRContra = findViewById(R.id.txtRContra)
+			txtRreContra = findViewById(R.id.txtRreContra)
+			btnRegistrarU = findViewById(R.id.btnRegistrarU)
+
+			btnRegistrarU.setOnClickListener {
+				registrarUsuario()
+			}
+			
+			
+		- Add the next code after the onCreate() function:
+
+			private fun registrarUsuario() {
+			val nombre = txtRNombre.text.toString()
+			val email = txtREmail.text.toString()
+			val contra = txtRContra.text.toString()
+			val reContra = txtRreContra.text.toString()
+
+			if (nombre.isEmpty() || email.isEmpty() || contra.isEmpty() || reContra.isEmpty()) {
+				Toast.makeText(this, "Favor de llenar todos los campos", Toast.LENGTH_SHORT).show()
+			} else {
+				if (contra == reContra) {
+					auth.createUserWithEmailAndPassword(email, contra)
+						.addOnCompleteListener(this) { task ->
+							if (task.isSuccessful) {
+								val dt: Date = Date()
+								val user = hashMapOf(
+									"idemp" to task.result?.user?.uid,
+									"usuario" to nombre,
+									"email" to email,
+									"ultAcceso" to dt.toString(),
+								)
+								db.collection("datosUsuarios")
+									.add(user)
+									.addOnSuccessListener { documentReference ->
+									
+										//Register the data into the local storage
+										val prefe = this.getSharedPreferences("appData", Context.MODE_PRIVATE)
+
+										//Create editor object for write app data
+										val editor = prefe.edit()
+
+										//Set editor fields with the new values
+										editor.putString("email", email.toString())
+										editor.putString("contra", contra.toString())
+
+										//Write app data
+										editor.commit()
+									
+										Toast.makeText(this,"Usuario registrado correctamente",Toast.LENGTH_SHORT).show()
+										
+										Intent().let {
+											setResult(Activity.RESULT_OK)
+											finish()
+										}
+									}
+									.addOnFailureListener { e ->
+										Toast.makeText(this,"Error al registrar usuario",Toast.LENGTH_SHORT).show()
+									}
+							} else {
+								Toast.makeText(this,"Error al registrar usuario",Toast.LENGTH_SHORT).show()
+							}
+						}
+				} else {
+					Toast.makeText(this, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
+				}
+			}
+		}
+
+	- Save changes
+
+		
+Step 16 - Changes Login Activity behaviour again
+
+	- Open app/kotlin+java/<dominio>.<aplicacion>/ui/users/LoginActivity.kt
+
+		- Add libraries:
+		
+			import android.widget.Toast
+			import com.google.firebase.firestore.FirebaseFirestore
+			import java.util.Date
+			
+		
+		- Between import section and LoginActivity class header declaration
+
+			const val valorIntentSignup = 1
+
+		
+		- Add variables before onCreate() function:
+		
+			var db = FirebaseFirestore.getInstance()
+		
+
+		- Add the next code into the onCreate() function:
+		
+			- Delete the btnAutenticar.setOnClickListener{} and replace with next code:
+			
+				btnAutenticar.setOnClickListener {
+					if(txtEmail.text.isNotEmpty() && txtContra.text.isNotEmpty()){
+						auth.signInWithEmailAndPassword(txtEmail.text.toString(), txtContra.text.toString()).addOnCompleteListener{
+							if (it.isSuccessful){
+								val dt: Date = Date()
+
+								val user = hashMapOf(
+									"ultAcceso" to dt.toString()
+								)
+
+								db.collection("datosUsuarios").whereEqualTo("idemp", it.result?.user?.uid.toString()).get()
+									.addOnSuccessListener { documentReference ->
+										documentReference.forEach { document ->
+											db.collection("datosUsuarios").document(document.id).update(user as Map<String, Any>)
+										}
+									}
+									.addOnFailureListener { e ->
+										Toast.makeText(this,"Error al actualizar los datos del usuario", Toast.LENGTH_SHORT).show()
+									}
+
+								//Register the data into the local storage
+								val prefe = this.getSharedPreferences("appData", Context.MODE_PRIVATE)
+
+								//Create editor object for write app data
+								val editor = prefe.edit()
+
+								//Set editor fields with the new values
+								editor.putString("email", txtEmail.text.toString())
+								editor.putString("contra", txtContra.text.toString())
+
+								//Write app data
+								editor.commit()
+
+								// call back to main activity
+								Intent().let {
+									setResult(Activity.RESULT_OK)
+									finish()
+								}
+							}else{
+								showAlert("Error","Al autenticar el usuario")
+							}
+						}
+					}else{
+						showAlert("Error","El correo electrónico y contraseña no pueden estar vacíos")
+					}
+				}		
+		
+			
+		- Add the next code after the onCreate() function:
+
+			- Delete goToSignup() function and replace with:
+			
+				private fun goToSignup() {
+					val intent = Intent(this, SignupActivity::class.java)
+					startActivityForResult(intent, valorIntentSignup)
+				}
+		
+		
+			- Add new function
+		
+				override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+					super.onActivityResult(requestCode, resultCode, data)
+
+					// validate control variables
+					if(resultCode == Activity.RESULT_OK){
+						// call back to main activity
+						Intent().let {
+							setResult(Activity.RESULT_OK)
+							finish()
+						}
+					}
+				}
+
+	- Save changes
+	
+
+Step 17 - Changes Main Activity behaviour again
+
+	- Open app/kotlin+java/<dominio>.<aplicacion>/MainActivity.kt
+	
+		- Between import section and LoginActivity class header declaration
+
+			const val valorIntentLogin = 1
+			
+			
+		- Into the onCreate() function:	
+		
+			- Changes the call way login activity from this:
+
+				val intent = Intent(this, LoginActivity::class.java)
+				startActivity(intent)
+
+				to:
+
+				val intent = Intent(this, LoginActivity::class.java)
+				startActivityForResult(intent, valorIntentLogin)
+	
+	
+	- Save changes
+	
+	
+Step 18 - Run your application
+
+	- Test signup process with the new user data, if this process is successful, you must see the screen of the 
+	  activity main, and the user data will be stored in the SharedPreferences of the application.
+	  
+	- You can see the new user in the authentication module in your Google Firebase project and new data user into
+	  collection users in FireStore database.
+
+	- Be happy	
+	
+	
+----------------------------------------------------------------------------------------------------------------
+In the next section call data from Categories collection, using the Northwind project from Google Firebase
+----------------------------------------------------------------------------------------------------------------
+
+Step 19	- Update gradle dependencies 
+
+	- Open app/Gradle Scripts/build.gradle.kts (Module: app)
+	
+		- Into dempendencies section add:
+	
+			implementation("com.github.bumptech.glide:glide:4.13.0")
+			annotationProcessor("com.github.bumptech.glide:compiler:4.13.0")
+			
+		- Press Sync Now (upper right screen)
+
+
+	- Saves changes
+	
+	
+Step 20 - Changes main layout
+
+	- Open app/res/layout/activity_main.xml	
+	
+		- Delete all content
+		
+		- Replace with the next code:
+
+			<?xml version="1.0" encoding="utf-8"?>
+			<LinearLayout
+				xmlns:android="http://schemas.android.com/apk/res/android"
+				xmlns:app="http://schemas.android.com/apk/res-auto"
+				xmlns:tools="http://schemas.android.com/tools"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:layout_margin="10dp"
+				android:orientation="vertical"
+				tools:context=".MainActivity">
+
+				<TextView
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:layout_marginLeft="10dp"
+					android:layout_marginTop="20dp"
+					android:layout_marginRight="10dp"
+					android:layout_marginBottom="25dp"
+					android:fontFamily="sans-serif-black"
+					android:text="@string/title_activity_main"
+					android:textAlignment="center"
+					android:textSize="24sp" />
+
+				<ListView
+					android:id="@+id/lstCategories"
+					android:layout_width="match_parent"
+					android:layout_height="match_parent" />
+
+			</LinearLayout>
+			
+
+	-Save changes
+
+
+Step 21 - Creates Category Class
+
+	- On app/kotlin+java/<dominio>.<aplicacion>/entities righ click
+	
+		- Select New - Kotlin class/file
+		
+			- Name...: cls_Category.kt
+		
+		
+	- Writes the next code into class body:
+
+		var CategoryID: Int = 0
+		var CategoryName: String = ""
+		var Description: String = ""
+		var urlImage: String = ""
+
+		constructor() {}
+
+		constructor(CategoryID: Int, CategoryName: String, Description: String, urlImage: String) {
+			this.CategoryID = CategoryID
+			this.CategoryName = CategoryName
+			this.Description = Description
+			this.urlImage = urlImage
+		}
+	
+	- Save changes
+
+
+Step 22 - Create multi data Category layout:
+
+	- On app/res/layout folder right click
+		
+		- Select New - Layout Resource File
+		
+			- File name.......: item_category
+			- Root element....: LinearLayout
+			- Source set......: main src/main/res
+			- Directory name..: layout
+
+
+	- Edit app/res/layout/item_category.xml code
+	
+		- Delete all content.
+		
+		- Writes the next code:	
+		
+			<?xml version="1.0" encoding="utf-8"?>
+			<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:layout_margin="10dp"
+				android:background="#ffffcc"
+				android:orientation="vertical"
+				android:padding="10dp">
+
+				<TextView
+					android:id="@+id/IdCategory"
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content"
+					android:textSize="5sp"
+					android:visibility="invisible" />
+
+				<ImageView
+					android:id="@+id/imgCategory"
+					android:layout_width="match_parent"
+					android:layout_height="125dp"
+					android:layout_marginStart="3dp"
+					android:layout_marginTop="3dp"
+					android:layout_marginEnd="3dp"
+					android:layout_marginBottom="5dp"
+					android:background="@color/white"
+					android:backgroundTint="@color/white"
+					android:contentDescription="@string/imagen_de_categoria"
+					android:scaleType="centerCrop"
+					android:padding="2dp" />
+
+				<TextView
+					android:id="@+id/NameCategory"
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content"
+					android:textColor="@color/black"
+					android:textSize="20sp"
+					android:textStyle="bold"
+					android:layout_marginTop="5dp"/>
+
+				<TextView
+					android:id="@+id/DescriptionCategory"
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content"
+					android:textColor="@color/black"
+					android:textSize="14sp"
+					android:textAlignment="center"
+					android:layout_marginTop="10sp"/>
+
+			</LinearLayout>
+		
+		
+	- Save changes	
+
+
+Step 23 - Create Category Adapter:
+
+	- On app/kotlin+java/<dominio>.<aplicacion>/ui/categories (right click)
+	
+		- Select New - Kotlin Clas File
+		
+				- Name...: CategoryAdapter.kt
+			
+			
+		- Delete the class code (maintain the application references package) and write:	
+
+			import android.content.Context
+			import android.view.LayoutInflater
+			import android.view.View
+			import android.view.ViewGroup
+			import android.widget.*
+			import com.bumptech.glide.Glide
+			import com.demoyork.a12_firebaseaccess.R
+			import com.google.firebase.storage.FirebaseStorage
+			import com.demoyork.a12_firebaseaccess.entities.cls_Category
+
+			class CategoryAdapter
+				(context: Context, dataModalArrayList: ArrayList<cls_Category?>?) :
+				ArrayAdapter<cls_Category?>(context, 0, dataModalArrayList!!) {
+
+				var imgs = FirebaseStorage.getInstance()
+
+				override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+					var listitemView = convertView
+					if (listitemView == null) {
+						listitemView = LayoutInflater.from(context).inflate(R.layout.item_category, parent, false)
+					}
+
+					val dataModal: cls_Category? = getItem(position)
+
+					val categoryID = listitemView!!.findViewById<TextView>(R.id.IdCategory)
+					val categoryName = listitemView!!.findViewById<TextView>(R.id.NameCategory)
+					val description = listitemView.findViewById<TextView>(R.id.DescriptionCategory)
+
+					val imageCategory = listitemView.findViewById<ImageView>(R.id.imgCategory)
+
+					if (dataModal != null) {
+						categoryID.setText(dataModal.CategoryID.toString())
+						categoryName.setText(dataModal.CategoryName)
+						description.setText(dataModal.Description)
+						Glide.with(context).load(dataModal.urlImage).into(imageCategory)
+					}
+
+					listitemView.setOnClickListener { // on the item click on our list view.
+						// we are displaying a toast message.
+						if (dataModal != null) {
+							Toast.makeText(context, "Item clicked is : " + dataModal.CategoryName, Toast.LENGTH_SHORT).show()
+						}
+					}
+					return listitemView
+				}
+			}
+
+
+	- Save changes
+
+
+Step 24 - Changes Main Activity behaviour again
+
+	- Open app/kotlin+java/<dominio>.<aplicacion>/MainActivity.kt
+	
+		- Add libraries
+
+			import android.widget.ListView	
+			import android.util.Log
+			import com.demoyork.a12_firebaseaccess.entities.cls_Category
+			import com.google.firebase.firestore.FirebaseFirestore
+	
+	
+		- Add variables before onCreate() function:
+		
+			var db = FirebaseFirestore.getInstance()
+			var TAG = "YorkTestingApp"
+		
+
+		- Add the next code into the onCreate() function:	
+	
+		- Add the next code after the onCreate() function:
+
+			- Delete the current obtenerDatos() function and replaces with:
+			
+				private fun obtenerDatos() {
+					//Toast.makeText(this,"Esperando hacer algo importante", Toast.LENGTH_LONG).show()
+					var coleccion: ArrayList<cls_Category?> = ArrayList()
+					var listaView: ListView = findViewById(R.id.lstCategories)
+					db.collection("Categories").orderBy("CategoryID")
+						.get()
+						.addOnCompleteListener { docc ->
+							if (docc.isSuccessful) {
+								for (document in docc.result!!) {
+									Log.d(TAG, document.id + " => " + document.data)
+									var datos: cls_Category = cls_Category(document.data["CategoryID"].toString().toInt(),
+										document.data["CategoryName"].toString(),
+										document.data["Description"].toString(),
+										document.data["urlImage"].toString())
+									coleccion.add(datos)
+								}
+								var adapter: CategoryAdapter = CategoryAdapter(this, coleccion)
+								listaView.adapter =adapter
+							} else {
+								Log.w(TAG, "Error getting documents.", docc.exception)
+							}
+						}
+				}
+			
+	- Save changes		
+			
+
+Step 25 - Update manifest
+
+	- Open app/manifests/AndroidManifest.xml
+	
+		For each activity registered, add the next instruction:
+
+			android:screenOrientation="portrait"			
+			
+	- Save changes	
+	
+
+Step 26 - Run your application again
+
+	- In this occasion you will see a list with the stored categories values, 
+	  including the image for each category.
+	  
+	- Remeber be happy...!  

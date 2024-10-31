@@ -46,6 +46,7 @@ class ComplexListActivity : AppCompatActivity() {
         cargaContactos()
 
 
+
     }
     private fun requestPermission(){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){

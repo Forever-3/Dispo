@@ -48,13 +48,15 @@ class ListAdapter(val context: Activity,
         return rowView
 
     }
+
+    fun call(celular: String){
+        context.startActivity(Intent(ACTION_CALL, Uri.parse("tel:$celular")))
+    }
     fun email(email: String){
         val laotra = Intent(context, EmailActivity::class.java)
         laotra.putExtra("emailDestino", email)
         context.startActivity(laotra)
     }
-    fun call(celular: String){
-        context.startActivity(Intent(ACTION_CALL, Uri.parse("tel:$celular")))
-    }
+
 
 }
